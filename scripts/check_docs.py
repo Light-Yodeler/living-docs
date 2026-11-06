@@ -94,13 +94,14 @@ def walk(root, include_all_dirs=False):
         else:
             dirnames[:] = [d for d in dirnames if d not in {".git", "node_modules", "__pycache__", ".venv", "venv"}]
         for name in filenames:
-            if name.endswith(".template.md"):
-                continue
             yield os.path.join(dirpath, name)
 
 
 def find_docs(root):
-    return sorted(p for p in walk(root) if DOC_NAMES.search(os.path.basename(p)))
+    return sorted(
+        p for p in walk(root)
+        if not p.endswith(".template.md") and DOC_NAMES.search(os.path.basename(p))
+    )
 
 
 def load_ignore_patterns(root, cli_ignores):

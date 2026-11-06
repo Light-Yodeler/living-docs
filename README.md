@@ -1,5 +1,10 @@
 # Living Docs (`living-docs`)
 
+[![CI](https://github.com/Light-Yodeler/living-docs/actions/workflows/ci.yml/badge.svg)](https://github.com/Light-Yodeler/living-docs/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/badge/version-0.1.0-blue.svg)](CHANGELOG.md)
+[![Python](https://img.shields.io/badge/python-3.8%2B-3776AB.svg)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 An agent skill and two-way verification tool that keeps project documentation true to the source code in both directions:
 1. **Docs -> Code (Forward Check):** Every file path, markdown link, and `function()` identifier written in documentation must exist in the codebase, with zero AI prose filler or hallucinated specifics. <!-- living-docs-ignore -->
 2. **Code -> Docs (Reverse Coverage Check):** Every public HTTP route, database table, and `.env.example` variable defined in code is checked for coverage in the documentation. <!-- living-docs-ignore -->
@@ -39,9 +44,14 @@ Strict [Diataxis](https://diataxis.fr/) splits documentation into four separate 
 
 ```text
 living-docs/
+├── .github/
+│   └── workflows/
+│       └── ci.yml                    # GitHub Actions CI (unit tests + self-verification)
 ├── SKILL.md                          # Main agent skill instructions & built-in prose rules
 ├── README.md                         # Repository overview, installation, and checker guide
 ├── CHANGELOG.md                      # Release history of the living-docs skill
+├── CONTRIBUTING.md                   # Contribution guide & PR checklist
+├── CODE_OF_CONDUCT.md                # Contributor Covenant Code of Conduct
 ├── LICENSE                           # MIT License
 ├── docs/
 │   ├── FEATURES.md                   # Feature catalog (FEAT-01 .. FEAT-05) for living-docs
@@ -146,6 +156,12 @@ Run the unit test suite and self-check this repository:
 python3 -m unittest discover -s tests -v
 python3 scripts/check_docs.py --root .
 ```
+
+---
+
+## Contributing
+
+Contributions are welcome. Please read [`CONTRIBUTING.md`](CONTRIBUTING.md) and [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md) before submitting a pull request.
 
 ---
 
