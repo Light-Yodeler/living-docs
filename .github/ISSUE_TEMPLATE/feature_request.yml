@@ -1,0 +1,33 @@
+name: Feature Request
+description: Propose support for a new framework, language template, or checker capability
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: dropdown
+    id: category
+    attributes:
+      label: Feature Category
+      options:
+        - "New framework / language route or schema detection in check_docs.py"
+        - "New language template set in resources/<lang>/"
+        - "New CLI flag or ignore directive in check_docs.py"
+        - "Improvement to SKILL.md workflow"
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or Use Case
+      description: What stack, language, or documentation workflow is currently missing or awkward?
+      placeholder: "Example: Projects using Rust Axum (`Router::new().route(\"/users\", get(list_users))`) are not detected by reverse coverage checks."
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed Solution
+      description: Provide an example of the code pattern, template structure, or CLI flag you would like to see supported.
+    validations:
+      required: true

@@ -1,6 +1,7 @@
 # Living Docs (`living-docs`)
 
 [![CI](https://github.com/Light-Yodeler/living-docs/actions/workflows/ci.yml/badge.svg)](https://github.com/Light-Yodeler/living-docs/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/Light-Yodeler/living-docs/actions/workflows/codeql.yml/badge.svg)](https://github.com/Light-Yodeler/living-docs/actions/workflows/codeql.yml)
 [![Release](https://img.shields.io/badge/version-0.1.0-blue.svg)](CHANGELOG.md)
 [![Python](https://img.shields.io/badge/python-3.8%2B-3776AB.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
@@ -45,13 +46,22 @@ Strict [Diataxis](https://diataxis.fr/) splits documentation into four separate 
 ```text
 living-docs/
 ├── .github/
+│   ├── CODEOWNERS                    # Default and path-specific repository maintainers
+│   ├── PULL_REQUEST_TEMPLATE.md      # Standardized PR review checklist
+│   ├── dependabot.yml                # Weekly automated updates for GitHub Actions
+│   ├── ISSUE_TEMPLATE/
+│   │   ├── bug_report.yml            # Structured bug report form
+│   │   ├── feature_request.yml       # Structured feature request form
+│   │   └── config.yml                # Issue chooser config & private security link
 │   └── workflows/
-│       └── ci.yml                    # GitHub Actions CI (unit tests + self-verification)
+│       ├── ci.yml                    # Matrix CI (Python 3.8..3.13 unit tests + self-verification)
+│       └── codeql.yml                # Static security analysis for Python & GitHub Actions
 ├── SKILL.md                          # Main agent skill instructions & built-in prose rules
 ├── README.md                         # Repository overview, installation, and checker guide
 ├── CHANGELOG.md                      # Release history of the living-docs skill
 ├── CONTRIBUTING.md                   # Contribution guide & PR checklist
 ├── CODE_OF_CONDUCT.md                # Contributor Covenant Code of Conduct
+├── SECURITY.md                       # Supported versions & vulnerability reporting policy
 ├── LICENSE                           # MIT License
 ├── docs/
 │   ├── FEATURES.md                   # Feature catalog (FEAT-01 .. FEAT-05) for living-docs
@@ -159,9 +169,9 @@ python3 scripts/check_docs.py --root .
 
 ---
 
-## Contributing
+## Contributing & Security
 
-Contributions are welcome. Please read [`CONTRIBUTING.md`](CONTRIBUTING.md) and [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md) before submitting a pull request.
+Contributions are welcome. Please read [`CONTRIBUTING.md`](CONTRIBUTING.md) and [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md) before submitting a pull request. To report a security vulnerability privately, follow the procedure in [`SECURITY.md`](SECURITY.md).
 
 ---
 

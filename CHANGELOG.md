@@ -8,6 +8,14 @@ Categories used: `Added`, `Changed`, `Fixed`, `Removed`, `Security`.
 
 ## [Unreleased]
 
+### Added
+* Security policy in `SECURITY.md` with supported versions and private vulnerability reporting steps.
+* Automated static security scanning via CodeQL in `.github/workflows/codeql.yml` and weekly GitHub Actions dependency updates in `.github/dependabot.yml`.
+* Structured GitHub issue forms (`.github/ISSUE_TEMPLATE/bug_report.yml`, `.github/ISSUE_TEMPLATE/feature_request.yml`, `.github/ISSUE_TEMPLATE/config.yml`), pull request template (`.github/PULL_REQUEST_TEMPLATE.md`), and `.github/CODEOWNERS`.
+
+### Changed
+* Expanded the Python test matrix in `.github/workflows/ci.yml` to cover `3.8`, `3.9`, `3.10`, `3.11`, `3.12`, and `3.13`, and added `SECURITY.md` to CI documentation verification.
+
 ---
 
 ## [0.1.0] - 2026-11-06

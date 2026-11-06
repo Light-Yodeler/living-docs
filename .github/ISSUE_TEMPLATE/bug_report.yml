@@ -1,0 +1,54 @@
+name: Bug Report
+description: Report a false positive, crash, or broken instruction in living-docs
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug in `living-docs`! Please fill out the details below so we can reproduce and fix it quickly.
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Affected Component
+      options:
+        - "scripts/check_docs.py (Forward check: Docs -> Code)"
+        - "scripts/check_docs.py (Reverse check: Code -> Docs)"
+        - "SKILL.md (Agent instructions / prose rules)"
+        - "resources/ (Documentation templates)"
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal Reproduction
+      description: Provide the Markdown snippet, source code snippet, or command that triggers the bug.
+      placeholder: |
+        Markdown in `docs/FEATURES.md`:
+        ```markdown
+        Calls `myFunc()` in `src/index.ts`.
+        ```
+        Command run:
+        ```bash
+        python3 scripts/check_docs.py --root .
+        ```
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected vs. Actual Output
+      description: What did `check_docs.py` (or the agent) output, and what should it have done instead?
+    validations:
+      required: true
+
+  - type: input
+    id: environment
+    attributes:
+      label: Environment (OS, Python version, Agent)
+      placeholder: "macOS 15, Python 3.12, Claude Code / Antigravity"
+    validations:
+      required: false

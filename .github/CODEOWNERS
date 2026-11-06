@@ -1,0 +1,9 @@
+# Default owner for everything in the repository
+*                   @Light-Yodeler
+
+# Core skill rules, templates, and verification script
+/SKILL.md           @Light-Yodeler
+/resources/         @Light-Yodeler
+/scripts/           @Light-Yodeler
+/tests/             @Light-Yodeler
+/.github/           @Light-Yodeler
