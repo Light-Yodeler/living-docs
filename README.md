@@ -130,26 +130,6 @@ python3 scripts/check_docs.py --root /path/to/your/project
 | **Code -> Docs** | Undocumented env variables | Warning (exit 0) | Keys defined in `.env.example` | <!-- living-docs-ignore -->
 | **Code <-> Docs** | Version drift across manifests & docs | Warning (exit 0) | Compares `VERSION`, `package.json`, `pyproject.toml`, `Cargo.toml`, `CHANGELOG.md`, and `README.md` badges |
 
----
-
-## Semantic Version & Patch Management (`scripts/bump_version.py`)
-
-`living-docs` includes a zero-dependency version manager that increments `MAJOR.MINOR.PATCH` (`X.Y.Z`), synchronizes version manifests (`VERSION`, `package.json`, `pyproject.toml`, `Cargo.toml`, `README.md` badges), and promotes `## [Unreleased]` items in `CHANGELOG.md` into a dated release section:
-
-```bash
-# Increment PATCH (0.1.0 -> 0.1.1) for bug fixes, security patches, or small tweaks
-python3 scripts/bump_version.py --root . --bump patch
-
-# Increment MINOR (0.1.1 -> 0.2.0) when adding backward-compatible features (FEAT-NN)
-python3 scripts/bump_version.py --root . --bump minor
-
-# Automatically infer patch / minor / major from ## [Unreleased] headings in CHANGELOG.md
-python3 scripts/bump_version.py --root . --bump auto
-
-# Preview changes without modifying files
-python3 scripts/bump_version.py --root . --bump patch --dry-run
-```
-
 ### Handling False Positives (Escape Hatches)
 
 When documentation legitimately mentions an external library function, a removed legacy path, or an internal route that should not be flagged, use any of these escape hatches:
@@ -179,6 +159,32 @@ When documentation legitimately mentions an external library function, a removed
    ```bash
    python3 scripts/check_docs.py --root . --ignore "legacy*" --skip-reverse --allow-em-dash
    ```
+
+---
+
+## Semantic Version & Patch Management (`scripts/bump_version.py`)
+
+`living-docs` includes a zero-dependency version manager (`scripts/bump_version.py`) that increments `MAJOR.MINOR.PATCH` (`X.Y.Z`), synchronizes version manifests (`VERSION`, `package.json`, `pyproject.toml`, `Cargo.toml`, `README.md` badges), and promotes `## [Unreleased]` items in `CHANGELOG.md` into a dated release section:
+
+| Change Type | Changelog Category | Version Segment | Example |
+| :--- | :--- | :--- | :--- |
+| Bug fix, security patch, or small behavior tweak | `Fixed`, `Security`, `Changed` | **PATCH** (`X.Y.(Z+1)`) | `0.1.0 -> 0.1.1` |
+| New backward-compatible feature (`FEAT-NN`), endpoint, or config key | `Added` | **MINOR** (`X.(Y+1).0`) | `0.1.1 -> 0.2.0` |
+| Breaking API/schema change or removed feature | `Removed`, `Changed` (`BREAKING`) | **MAJOR** (`(X+1).0.0`) | `0.2.0 -> 1.0.0` |
+
+```bash
+# Increment PATCH (0.1.0 -> 0.1.1) for bug fixes, security patches, or small tweaks
+python3 scripts/bump_version.py --root . --bump patch
+
+# Increment MINOR (0.1.1 -> 0.2.0) when adding backward-compatible features (FEAT-NN)
+python3 scripts/bump_version.py --root . --bump minor
+
+# Automatically infer patch / minor / major from ## [Unreleased] headings in CHANGELOG.md
+python3 scripts/bump_version.py --root . --bump auto
+
+# Preview changes without modifying files
+python3 scripts/bump_version.py --root . --bump patch --dry-run
+```
 
 ---
 
