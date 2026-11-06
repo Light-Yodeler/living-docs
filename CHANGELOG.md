@@ -8,7 +8,14 @@ Categories used: `Added`, `Changed`, `Fixed`, `Removed`, `Security`.
 
 ## [Unreleased]
 
+
+---
+
+## [0.1.1] - 2026-11-06
+
 ### Added
+* Automated Semantic Version and patch manager in `scripts/bump_version.py` (`--bump patch|minor|major|auto`, `--set`, `--dry-run`) and version drift verification (`check_version_consistency()`) in `scripts/check_docs.py` (`FEAT-06`).
+* Unit test suite for version management in `tests/test_bump_version.py` and canonical `VERSION` file.
 * Security policy in `SECURITY.md` with supported versions and private vulnerability reporting steps.
 * Automated static security scanning via CodeQL in `.github/workflows/codeql.yml` and weekly GitHub Actions dependency updates in `.github/dependabot.yml`.
 * Structured GitHub issue forms (`.github/ISSUE_TEMPLATE/bug_report.yml`, `.github/ISSUE_TEMPLATE/feature_request.yml`, `.github/ISSUE_TEMPLATE/config.yml`), pull request template (`.github/PULL_REQUEST_TEMPLATE.md`), and `.github/CODEOWNERS`.

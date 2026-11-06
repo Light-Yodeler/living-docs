@@ -73,3 +73,21 @@ Catalog of features implemented in the `living-docs` skill and verifier, their t
   * Verifier Script: `scripts/check_docs.py` (`iter_active_lines()`, `load_ignore_patterns()`, `is_ignored()`)
   * Test Suite: `tests/test_check_docs.py`
 * **Configuration:** `.living-docs-ignore` file at repo root, `--ignore <pattern>` CLI argument.
+
+---
+
+## Module 3: Semantic Version & Patch Management (`scripts/bump_version.py`)
+
+### FEAT-06: Automated Semantic Version & Changelog Release Manager
+* **Purpose:** Keeps project version numbers (`MAJOR.MINOR.PATCH`) synchronized across manifests, `README.md` badges, and `CHANGELOG.md` releases without manual copy-paste errors.
+* **Trigger:** Invoked via `python3 scripts/bump_version.py --root <path> --bump patch|minor|major|auto` or `--set X.Y.Z`.
+* **Behavior & Rules:**
+  1. `detect_current_version()` reads the current `X.Y.Z` version from `VERSION`, `package.json`, `pyproject.toml`, `Cargo.toml`, or the latest `## [X.Y.Z]` header in `CHANGELOG.md`.
+  2. `compute_next_version()` increments `patch` (`X.Y.(Z+1)`), `minor` (`X.(Y+1).0`), or `major` (`(X+1).0.0`). When `--bump auto` is used, `infer_bump_from_unreleased()` inspects `## [Unreleased]` headings (`Removed`/`BREAKING` -> major, `Added` -> minor, `Fixed`/`Changed`/`Security` -> patch).
+  3. `update_project_files()` writes the new version to all existing manifests (`VERSION`, `package.json`, `pyproject.toml`, `Cargo.toml`), updates shields.io version badges in `README.md`, and calls `update_changelog_text()` to move `## [Unreleased]` items under `## [X.Y.Z] - YYYY-MM-DD`.
+  4. `check_version_consistency()` in `scripts/check_docs.py` warns whenever version numbers drift across files.
+* **Touchpoints:**
+  * Version Manager Script: `scripts/bump_version.py` (`detect_current_version()`, `infer_bump_from_unreleased()`, `compute_next_version()`, `update_changelog_text()`, `update_project_files()`)
+  * Consistency Checker: `scripts/check_docs.py` (`check_version_consistency()`)
+  * Test Suite: `tests/test_bump_version.py`
+* **Configuration:** `--bump`, `--set`, `--message`, `--date`, `--create-version-file`, `--strict-major`, `--dry-run`.

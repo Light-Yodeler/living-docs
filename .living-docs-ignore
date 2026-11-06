@@ -1,0 +1,6 @@
+# External ecosystem manifest filenames referenced in living-docs documentation
+package.json
+pyproject.toml
+Cargo.toml
+.env.example
+func()

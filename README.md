@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/Light-Yodeler/living-docs/actions/workflows/ci.yml/badge.svg)](https://github.com/Light-Yodeler/living-docs/actions/workflows/ci.yml)
 [![CodeQL](https://github.com/Light-Yodeler/living-docs/actions/workflows/codeql.yml/badge.svg)](https://github.com/Light-Yodeler/living-docs/actions/workflows/codeql.yml)
-[![Release](https://img.shields.io/badge/version-0.1.0-blue.svg)](CHANGELOG.md)
+[![Release](https://img.shields.io/badge/version-0.1.1-blue.svg)](CHANGELOG.md)
 [![Python](https://img.shields.io/badge/python-3.8%2B-3776AB.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
@@ -57,6 +57,7 @@ living-docs/
 │       ├── ci.yml                    # Matrix CI (Python 3.8..3.13 unit tests + self-verification)
 │       └── codeql.yml                # Static security analysis for Python & GitHub Actions
 ├── SKILL.md                          # Main agent skill instructions & built-in prose rules
+├── VERSION                           # Canonical Semantic Version (X.Y.Z) of living-docs
 ├── README.md                         # Repository overview, installation, and checker guide
 ├── CHANGELOG.md                      # Release history of the living-docs skill
 ├── CONTRIBUTING.md                   # Contribution guide & PR checklist
@@ -64,8 +65,8 @@ living-docs/
 ├── SECURITY.md                       # Supported versions & vulnerability reporting policy
 ├── LICENSE                           # MIT License
 ├── docs/
-│   ├── FEATURES.md                   # Feature catalog (FEAT-01 .. FEAT-05) for living-docs
-│   └── ARCHITECTURE.md               # Architecture, CLI contract, ADRs (ADR-01 .. ADR-03), runbook
+│   ├── FEATURES.md                   # Feature catalog (FEAT-01 .. FEAT-06) for living-docs
+│   └── ARCHITECTURE.md               # Architecture, CLI contracts, ADRs (ADR-01 .. ADR-03), runbook
 ├── examples/
 │   └── before-and-after.md           # Side-by-side comparison of unchecked vs verified docs
 ├── resources/
@@ -76,9 +77,11 @@ living-docs/
 │   ├── en/                           # Explicit English templates
 │   └── id/                           # Explicit Indonesian templates (Bahasa Indonesia)
 ├── scripts/
-│   └── check_docs.py                 # Two-way documentation verifier (Python 3 standard library)
+│   ├── check_docs.py                 # Two-way documentation verifier (Python 3 standard library)
+│   └── bump_version.py               # Automated Semantic Version (patch/minor/major) manager
 └── tests/
-    └── test_check_docs.py            # Automated unit tests for check_docs.py
+    ├── test_check_docs.py            # Automated unit tests for check_docs.py
+    └── test_bump_version.py          # Automated unit tests for bump_version.py
 ```
 
 ---
@@ -125,6 +128,27 @@ python3 scripts/check_docs.py --root /path/to/your/project
 | **Code -> Docs** | Undocumented HTTP routes | Warning (exit 0) | Express, Fastify, Hono, Koa, FastAPI, Flask, Go `net/http`, Gin, Echo, Fiber |
 | **Code -> Docs** | Undocumented database tables | Warning (exit 0) | SQL `CREATE TABLE`, SQLAlchemy `__tablename__` |
 | **Code -> Docs** | Undocumented env variables | Warning (exit 0) | Keys defined in `.env.example` | <!-- living-docs-ignore -->
+| **Code <-> Docs** | Version drift across manifests & docs | Warning (exit 0) | Compares `VERSION`, `package.json`, `pyproject.toml`, `Cargo.toml`, `CHANGELOG.md`, and `README.md` badges |
+
+---
+
+## Semantic Version & Patch Management (`scripts/bump_version.py`)
+
+`living-docs` includes a zero-dependency version manager that increments `MAJOR.MINOR.PATCH` (`X.Y.Z`), synchronizes version manifests (`VERSION`, `package.json`, `pyproject.toml`, `Cargo.toml`, `README.md` badges), and promotes `## [Unreleased]` items in `CHANGELOG.md` into a dated release section:
+
+```bash
+# Increment PATCH (0.1.0 -> 0.1.1) for bug fixes, security patches, or small tweaks
+python3 scripts/bump_version.py --root . --bump patch
+
+# Increment MINOR (0.1.1 -> 0.2.0) when adding backward-compatible features (FEAT-NN)
+python3 scripts/bump_version.py --root . --bump minor
+
+# Automatically infer patch / minor / major from ## [Unreleased] headings in CHANGELOG.md
+python3 scripts/bump_version.py --root . --bump auto
+
+# Preview changes without modifying files
+python3 scripts/bump_version.py --root . --bump patch --dry-run
+```
 
 ### Handling False Positives (Escape Hatches)
 

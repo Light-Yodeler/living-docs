@@ -72,7 +72,21 @@ Skip silently when the last row applies. Do not create docs for throwaway script
    - `CHANGELOG.template.md`: Keep a Changelog + SemVer format.
    - `ARCHITECTURE.template.md`: system diagram, environment/hardware config, API & event contracts, data model, ADRs (`ADR-NN`), operational runbook.
 5. **Feature and ADR IDs.** Use `FEAT-NN` and `ADR-NN`, continuing from the highest existing number. Never renumber or reuse an ID. A removed feature keeps its ID with a `Removed in vX.Y.Z` (`Dihapus di versi X.Y.Z`) note; a superseded decision keeps its ID with `Superseded by ADR-MM` (`Digantikan oleh ADR-MM`).
-6. **Changelog entries.** Add to `## [Unreleased]` unless the user names a version or the project has a version source bumped in this task (`package.json`, `pyproject.toml`, `Cargo.toml`, or a release tag). Use today's date only when cutting a version. Never backfill history you did not observe; if you must reconstruct past history, state that in a note at the top.
+6. **Changelog and Semantic Version Management (`MAJOR.MINOR.PATCH`).**
+   - Always record changes under the appropriate Keep a Changelog heading (`Added`, `Changed`, `Fixed`, `Removed`, `Security`).
+   - Choose the Semantic Versioning (`X.Y.Z`) increment based on the actual code change:
+     | Change Type | Changelog Category | Version Segment | Example |
+     | :--- | :--- | :--- | :--- |
+     | Bug fix, security patch, or small behavior tweak | `Fixed`, `Security`, `Changed` | **PATCH** (`X.Y.(Z+1)`) | `0.1.0 -> 0.1.1` |
+     | New backward-compatible feature (`FEAT-NN`), endpoint, or config key | `Added` | **MINOR** (`X.(Y+1).0`) | `0.1.1 -> 0.2.0` |
+     | Breaking API/schema change or removed feature | `Removed`, `Changed` (`BREAKING`) | **MAJOR** (`(X+1).0.0`) | `0.2.0 -> 1.0.0` |
+   - **When to stay in `## [Unreleased]` vs. bump the version:**
+     - Add entries to `## [Unreleased]` first while work is in progress.
+     - When cutting a release, when the user asks to bump the version, or when the project versions every completed fix/feature, run `scripts/bump_version.py` (relative to `<skill-dir>`):
+       ```bash
+       python3 <skill-dir>/scripts/bump_version.py --root . --bump patch|minor|major|auto
+       ```
+       `--bump auto` inspects `## [Unreleased]` (`Removed`/`BREAKING` -> major, `Added` -> minor, `Fixed`/`Changed`/`Security` -> patch), updates `VERSION`, `package.json`, `pyproject.toml`, `Cargo.toml`, and `README.md` version badges, and promotes `## [Unreleased]` into `## [X.Y.Z] - YYYY-MM-DD`. Never backfill history you did not observe.
 7. **Record known gaps honestly.** If you notice a missing safeguard while reading code (unauthenticated endpoint, plaintext token storage, in-memory state lost on restart, missing input validation), record it under **Known Limitations** in the feature entry and under `Security` in `[Unreleased]`. Never describe a protection the code does not implement.
 8. **Verify (Two-Way Check).** Run `scripts/check_docs.py` (resolved relative to this `SKILL.md` directory, `<skill-dir>`) from the target project root and fix every error before reporting:
    ```bash

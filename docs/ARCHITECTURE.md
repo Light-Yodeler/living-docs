@@ -30,7 +30,22 @@ flowchart LR
 
 ---
 
-## 3. Architecture Decision Records (ADR)
+## 3. CLI Interface Contract (`scripts/bump_version.py`)
+
+| Flag | Default | Purpose |
+| :--- | :--- | :--- |
+| `--root <path>` | `.` | Root directory of the target project |
+| `--bump <patch\|minor\|major\|auto>` | Required (or `--set`) | Segment to increment (`auto` inspects `## [Unreleased]` headings in `CHANGELOG.md`) |
+| `--set <X.Y.Z>` | None | Explicit Semantic Version to write instead of computing an increment |
+| `--message <text>` | None | Fallback entry when `## [Unreleased]` is empty (e.g. `"Fixed: handle timeout"`) |
+| `--date <YYYY-MM-DD>` | Today (ISO) | Release date written to `## [X.Y.Z] - YYYY-MM-DD` in `CHANGELOG.md` |
+| `--create-version-file` | `False` | Create a `VERSION` file at `--root` if one does not exist yet |
+| `--strict-major` | `False` | Allow `--bump auto` to jump `0.Y.Z -> 1.0.0` on breaking changes |
+| `--dry-run` | `False` | Preview version transition and affected files without modifying disk |
+
+---
+
+## 4. Architecture Decision Records (ADR)
 
 ### ADR-01: Pragmatic 4-File Diataxis Consolidation
 * **Context:** Strict Diataxis splits documentation into four separate directory trees (Tutorials, How-To Guides, Reference, Explanation). In small and medium repositories, strict separation creates many small stub files that developers and agents fail to keep updated.
@@ -49,11 +64,17 @@ flowchart LR
 
 ---
 
-## 4. Operational Runbook (Testing & Release)
+## 5. Operational Runbook (Testing & Release)
 
 ### Running Verification and Unit Tests
 ```bash
 python3 -m unittest discover -s tests -v
+python3 scripts/check_docs.py --root .
+```
+
+### Cutting a Patch / Minor / Major Release
+```bash
+python3 scripts/bump_version.py --root . --bump patch
 python3 scripts/check_docs.py --root .
 ```
 

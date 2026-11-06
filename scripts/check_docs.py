@@ -165,6 +165,21 @@ def load_sources(root, doc_set):
     return "\n".join(chunks), rel_paths, sorted(env_keys), source_file_count > 0
 
 
+def has_file_ignore_directive(text):
+    """Return True if IGNORE_FILE_DIRECTIVE appears outside fenced or inline code."""
+    in_fence = False
+    for line in text.splitlines():
+        if line.lstrip().startswith("```"):
+            in_fence = not in_fence
+            continue
+        if in_fence:
+            continue
+        outside_code = re.sub(r"`[^`\n]+`", "", line)
+        if IGNORE_FILE_DIRECTIVE in outside_code:
+            return True
+    return False
+
+
 def iter_active_lines(text):
     """Yield (line_no, line, in_fence) for lines not suppressed by ignore comments."""
     in_fence = False
@@ -179,21 +194,23 @@ def iter_active_lines(text):
             continue
 
         if not in_fence:
-            if IGNORE_START_DIRECTIVE in line:
+            outside_code = re.sub(r"`[^`\n]+`", "", line)
+            outside_stripped = outside_code.strip()
+            if IGNORE_START_DIRECTIVE in outside_code:
                 in_ignore_block = True
                 continue
-            if IGNORE_END_DIRECTIVE in line:
+            if IGNORE_END_DIRECTIVE in outside_code:
                 in_ignore_block = False
                 continue
             if in_ignore_block:
                 continue
-            if IGNORE_NEXT_DIRECTIVE in line or stripped == IGNORE_LINE_DIRECTIVE:
+            if IGNORE_NEXT_DIRECTIVE in outside_code or outside_stripped == IGNORE_LINE_DIRECTIVE:
                 ignore_next = True
                 continue
             if ignore_next:
                 ignore_next = False
                 continue
-            if IGNORE_LINE_DIRECTIVE in line:
+            if IGNORE_LINE_DIRECTIVE in outside_code:
                 continue
 
         yield no, line, in_fence
@@ -245,6 +262,63 @@ def extract_tables(source):
     return sorted(tables)
 
 
+def check_version_consistency(root, docs):
+    """Return warning messages if manifest version, CHANGELOG version, or README badge version drift."""
+    versions = {}
+
+    version_file = os.path.join(root, "VERSION")
+    if os.path.isfile(version_file):
+        try:
+            with open(version_file, encoding="utf-8") as fh:
+                val = fh.read().strip().lstrip("v")
+            if re.match(r"^\d+\.\d+\.\d+$", val):
+                versions["VERSION"] = val
+        except OSError:
+            pass
+
+    pkg_json = os.path.join(root, "package.json")
+    if os.path.isfile(pkg_json):
+        try:
+            with open(pkg_json, encoding="utf-8") as fh:
+                m = re.search(r'"version"\s*:\s*"(\d+\.\d+\.\d+)"', fh.read())
+            if m:
+                versions["package.json"] = m.group(1)
+        except OSError:
+            pass
+
+    for toml_name in ("pyproject.toml", "Cargo.toml"):
+        toml_path = os.path.join(root, toml_name)
+        if os.path.isfile(toml_path):
+            try:
+                with open(toml_path, encoding="utf-8") as fh:
+                    m = re.search(r'^version\s*=\s*["\'](\d+\.\d+\.\d+)["\']', fh.read(), re.M)
+                if m:
+                    versions[toml_name] = m.group(1)
+            except OSError:
+                pass
+
+    for doc in docs:
+        base = os.path.basename(doc).upper()
+        try:
+            with open(doc, encoding="utf-8", errors="ignore") as fh:
+                text = fh.read()
+        except OSError:
+            continue
+        if base.startswith("CHANGELOG"):
+            m = re.search(r"^##\s+\[(\d+\.\d+\.\d+)\]", text, re.M)
+            if m:
+                versions["CHANGELOG.md"] = m.group(1)
+        elif base.startswith("README"):
+            m = re.search(r"img\.shields\.io/badge/version-(\d+\.\d+\.\d+)-", text)
+            if m:
+                versions["README.md"] = m.group(1)
+
+    if len(set(versions.values())) > 1:
+        summary = ", ".join(f"{k}={v}" for k, v in versions.items())
+        return [f"version: mismatch across files ({summary}); run scripts/bump_version.py to synchronize"]
+    return []
+
+
 def main():
     ap = argparse.ArgumentParser(description="Two-way verification for project documentation.")
     ap.add_argument("--root", default=".", help="Project root directory (default: .)")
@@ -272,7 +346,7 @@ def main():
             text = fh.read()
         all_docs_text.append(text)
 
-        if IGNORE_FILE_DIRECTIVE in text or is_ignored(rel_doc, rel_doc, ignore_patterns):
+        if has_file_ignore_directive(text) or is_ignored(rel_doc, rel_doc, ignore_patterns):
             continue
 
         for no, line, in_fence in iter_active_lines(text):
@@ -351,6 +425,9 @@ def main():
         for key in env_keys:
             if not is_ignored(key, "", ignore_patterns) and key not in combined_docs:
                 warnings.append(f"coverage: env var `{key}` in .env.example is not documented")
+
+    if not args.skip_reverse:
+        warnings.extend(check_version_consistency(root, docs))
 
     for w in warnings:
         print("WARN ", w)
