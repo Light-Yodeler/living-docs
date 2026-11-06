@@ -1,39 +1,38 @@
-# Arsitektur, API, dan Model Data: [Nama Proyek]
+# Architecture, API, and Operations: [Project Name]
 
-## 1. Gambaran Sistem
+## 1. System Overview
 
 ```mermaid
 flowchart LR
-    A["[Sumber data / klien]"] --> B["[Server / layanan]"]
-    B --> C[("[Database]")]
+    A["[Client / Producer]"] --> B["[Service / API]"]
+    B --> C[("[Database / Store]")]
 ```
 
-[Dua sampai empat kalimat tentang alur data dari input sampai tampilan.]
+[Two to four sentences describing the end-to-end data flow from input to storage/output.]
 
 ---
 
-## 2. Perangkat Keras dan Konfigurasi
+## 2. Environment & Hardware Configuration
 
-Hapus bagian perangkat keras jika proyek tidak memakainya.
-
-| Komponen | Pin / Port | Protokol | Fungsi |
-| :--- | :--- | :--- | :--- |
-| [Sensor] | [GPIO] | [I2C / Analog / 1-Wire] | [Yang diukur] |
-
-| Variabel Lingkungan | Default | Kegunaan |
+| Environment Variable | Default | Purpose |
 | :--- | :--- | :--- |
-| `[NAMA_VAR]` | [nilai] | [fungsi] |
+| `[VAR_NAME]` | `[value]` | [What it controls] |
+
+<!-- Optional: Keep the hardware table below only for embedded/IoT projects; remove otherwise. -->
+| Component | Pin / Port | Protocol | Purpose |
+| :--- | :--- | :--- | :--- |
+| `[Device/Sensor]` | `[Pin/Port]` | `[I2C / SPI / UART / GPIO]` | `[What it reads or controls]` |
 
 ---
 
-## 3. Kontrak API
+## 3. API / Interface Contract
 
-| Method | Path | Autentikasi | Fungsi |
+| Method | Path | Auth | Purpose |
 | :--- | :--- | :--- | :--- |
-| `[GET]` | `/api/[path]` | [jenis] | [fungsi] |
+| `GET` | `/api/[path]` | `[Bearer / Session / None]` | `[Summary]` |
 
 ### [METHOD] /api/[path]
-[Kegunaan singkat.]
+[Short description of what the endpoint does.]
 
 Request:
 ```json
@@ -45,61 +44,61 @@ Response 200:
 { }
 ```
 
-Error: [kode dan kondisi].
+Errors: `[status codes and exact conditions]`.
 
 ---
 
-## 4. Pesan Realtime (WebSocket / MQTT / SSE)
+## 4. Realtime / Async Messages (WebSocket / Queue / Events)
 
-Hapus jika tidak ada.
+Remove this section if the project has no realtime or message-driven channels.
 
-| Tipe Pesan | Arah | Kapan Dikirim |
+| Event / Topic | Direction | Trigger Condition |
 | :--- | :--- | :--- |
-| `[type]` | server ke klien | [kondisi] |
+| `[event.name]` | `server -> client` | `[When emitted]` |
 
 ---
 
-## 5. Model Data
+## 5. Data Model
 
 ```mermaid
 erDiagram
-    TABEL_A ||--o{ TABEL_B : "[relasi]"
+    TABLE_A ||--o{ TABLE_B : "[relationship]"
 ```
 
-### `[nama_tabel]`
-| Kolom | Tipe | Keterangan |
+### `[table_name]`
+| Column | Type | Notes |
 | :--- | :--- | :--- |
-| `id` | INTEGER PK | |
+| `id` | `INTEGER PK` | |
 
-### Kunci Pengaturan
-| Kunci | Default | Kegunaan |
+### Runtime Settings Keys
+| Key | Default | Purpose |
 | :--- | :--- | :--- |
-| `[kunci]` | [nilai] | [fungsi] |
+| `[key]` | `[value]` | `[What it controls]` |
 
 ---
 
-## 6. Keputusan Arsitektur (ADR)
+## 6. Architecture Decision Records (ADR)
 
-Catat keputusan teknis penting supaya developer berikutnya tahu alasan di balik pilihan desain.
+Record non-obvious technical decisions so future maintainers know the constraints behind the design.
 
-### ADR-01: [Judul Keputusan]
-* **Konteks:** [Kendala atau masalah nyata yang dihadapi.]
-* **Keputusan:** [Pilihan teknis yang diambil.]
-* **Konsekuensi:** [Keuntungan dan kompromi/keterbatasan yang harus diterima.]
+### ADR-01: [Decision Title]
+* **Context:** [Concrete constraint or problem faced.]
+* **Decision:** [Technical choice made.]
+* **Consequences:** [Benefits gained and trade-offs accepted. If superseded later, mark `Superseded by ADR-MM`.]
 
 ---
 
-## 7. Runbook Operasional (Deploy, Backup, dan Pemulihan)
+## 7. Operational Runbook (Deploy, Backup, Recovery)
 
-### Deployment Aman
+### Safe Deployment
 ```bash
-[Perintah deploy yang menjaga data produksi, misalnya mengecualikan folder data/ dan .env.]
+[Deploy or release commands that preserve production state and secrets.]
 ```
 
-### Backup dan Restore Data
+### Backup and Restore
 ```bash
-[Perintah backup database/state produksi.]
+[Commands to back up and restore database or persistent state.]
 ```
 
-### Diagnosa Gangguan Umum
-* **[Gejala 1]:** [Cara cek dan langkah perbaikan.]
+### Troubleshooting Common Failures
+* **[Symptom 1]:** [How to verify the cause and exact recovery steps.]

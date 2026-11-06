@@ -1,23 +1,21 @@
 # Changelog
 
-Format mengacu pada [Keep a Changelog](https://keepachangelog.com/id/1.0.0/) dan
-[Semantic Versioning](https://semver.org/lang/id/).
+Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Semantic Versioning](https://semver.org/).
 
-Kategori yang dipakai: `Added` (fitur baru), `Changed` (perilaku berubah), `Fixed` (perbaikan bug),
-`Removed` (fitur dihapus), `Security` (perbaikan atau celah keamanan yang diketahui).
+Categories used: `Added` (new features), `Changed` (behavior changes), `Fixed` (bug fixes), `Removed` (removed features), `Security` (vulnerability fixes or known security gaps).
 
 ---
 
 ## [Unreleased]
 
 ### Added
-* [Apa yang ditambahkan, sebut nama fitur atau endpoint dan ID `FEAT-NN` bila ada.]
+* [What was added, referencing the feature ID `FEAT-NN` or endpoint path when applicable.]
 
 ### Changed
-* [Perilaku lama, perilaku baru, alasan singkat.]
+* [Previous behavior, new behavior, and brief reason.]
 
 ### Fixed
-* [Gejala yang dialami pengguna dan apa yang diperbaiki.]
+* [User-visible symptom and what fixed it.]
 
 ---
 

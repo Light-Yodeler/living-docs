@@ -1,33 +1,33 @@
-# [Nama Proyek]
+# [Project Name]
 
-[Satu paragraf: apa yang dilakukan sistem ini, untuk siapa, dan komponen utamanya.]
-
----
-
-## Dokumentasi
-
-* [`docs/FEATURES.md`](docs/FEATURES.md): katalog seluruh fitur, aturan kerja, dan berkas terkait.
-* [`docs/CHANGELOG.md`](docs/CHANGELOG.md): riwayat perubahan per versi.
-* [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md): arsitektur, kontrak API, model data, dan konfigurasi.
+[One paragraph: what this system does, who it is for, and its main components.]
 
 ---
 
-## Struktur Direktori
+## Documentation
+
+* [`docs/FEATURES.md`](docs/FEATURES.md): feature catalog (`FEAT-NN`), business rules, and source touchpoints.
+* [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md): system diagram, API & data contracts, architecture decisions (`ADR-NN`), and operational runbook.
+* [`docs/CHANGELOG.md`](docs/CHANGELOG.md): release history by version.
+
+---
+
+## Directory Structure
 
 ```text
-[Pohon direktori nyata, hasil ls. Beri komentar singkat per berkas penting.]
+[Actual directory tree from ls/tree. Add a short comment per key file or folder.]
 ```
 
 ---
 
-## Menjalankan Secara Lokal
+## Running Locally
 
-1. [Perintah instalasi dependensi yang benar-benar ada di proyek.]
-2. [Langkah konfigurasi, misalnya salin .env.example.]
-3. [Perintah menjalankan aplikasi dan alamat yang dibuka.]
+1. [Dependency installation command that actually exists in the project.]
+2. [Configuration step, e.g., copy `.env.example` to `.env`.]
+3. [Start command and local URL/port.]
 
-## Pengujian
+## Testing
 
 ```bash
-[Perintah test yang benar-benar ada di package.json, Makefile, atau scripts/.]
+[Test command from package.json, pyproject.toml, Makefile, Cargo.toml, or scripts/.]
 ```

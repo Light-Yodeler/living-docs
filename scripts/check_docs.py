@@ -2,34 +2,100 @@
 """Two-way verification for project documentation.
 
 Forward checks (Docs -> Code):
-- Errors (exit 1):   em dashes, broken markdown links, missing file paths, `func()` names absent from source.
-- Warnings (exit 0): en dashes, CSS selectors / API paths absent from source, missing [Unreleased].
+- Errors (exit 1):   em dashes (unless --allow-em-dash), broken markdown links,
+                     missing file paths, `func()` names absent from source.
+- Warnings (exit 0): en dashes, CSS selectors / API paths absent from source,
+                     missing '## [Unreleased]' in CHANGELOG.
 
 Reverse coverage checks (Code -> Docs):
-- Warnings (exit 0): API routes, SQL tables, or .env.example keys defined in code but never mentioned in docs.
+- Warnings (exit 0): HTTP routes (Express/Fastify/Hono, FastAPI/Flask, Go net/http/Gin/Echo),
+                     SQL tables / SQLAlchemy `__tablename__`, or `.env.example` keys
+                     defined in code but never mentioned in docs.
 
-Usage: python3 check_docs.py --root . [--docs path/to/a.md path/to/b.md]
+Escape hatches for false positives:
+- Inline comment on the same line:  `foo()` <!-- living-docs-ignore -->
+- Next-line comment:                <!-- living-docs-ignore-next-line -->
+- Block comments:                   <!-- living-docs-ignore-start --> ... <!-- living-docs-ignore-end -->
+- Whole-file comment:               <!-- living-docs-ignore-file -->
+- Project ignore file:              `.living-docs-ignore` at repo root (one pattern or regex per line)
+- CLI flags:                        `--ignore <pattern>`, `--skip-reverse`, `--allow-em-dash`
+
+Usage:
+  python3 check_docs.py --root . [--docs path/to/a.md ...] [--ignore PATTERN ...]
 """
 import argparse
+import fnmatch
 import os
 import re
 import sys
 
-SKIP_DIRS = {"node_modules", ".git", "dist", "build", ".next", "venv", ".venv",
-             "__pycache__", "coverage", ".cache", "backups", "vendor", "target"}
-SOURCE_EXT = {".js", ".mjs", ".cjs", ".ts", ".tsx", ".jsx", ".py", ".ino", ".c", ".cpp",
-              ".h", ".hpp", ".go", ".rs", ".java", ".kt", ".swift", ".php", ".rb",
-              ".css", ".scss", ".html", ".vue", ".svelte", ".sql", ".sh", ".json",
-              ".yaml", ".yml", ".toml", ".conf", ".service", ".env", ".example"}
+SKIP_DIRS = {
+    "node_modules", ".git", "dist", "build", ".next", "venv", ".venv",
+    "__pycache__", "coverage", ".cache", "backups", "vendor", "target",
+    "resources", "examples", "tests",
+}
+SOURCE_EXT = {
+    ".js", ".mjs", ".cjs", ".ts", ".tsx", ".jsx", ".py", ".ino", ".c", ".cpp",
+    ".h", ".hpp", ".go", ".rs", ".java", ".kt", ".swift", ".php", ".rb",
+    ".css", ".scss", ".html", ".vue", ".svelte", ".sql", ".sh", ".json",
+    ".yaml", ".yml", ".toml", ".conf", ".service", ".env", ".example",
+}
 PATH_EXT = SOURCE_EXT | {".md", ".db", ".txt", ".csv", ".png", ".jpg", ".svg"}
-DOC_NAMES = re.compile(r"(README|FEATURES|CHANGELOG|ARCHITECTURE|API|PRD)[^/]*\.md$", re.I)
+DOC_NAMES = re.compile(r"^(README|FEATURES|CHANGELOG|ARCHITECTURE|API|PRD|RUNBOOK|ADR)[^/]*\.md$", re.I)
 MAX_BYTES = 2_000_000
 
+BUILTIN_FUNCS = {
+    # SQL & database built-ins
+    "COUNT", "SUM", "AVG", "MIN", "MAX", "NOW", "COALESCE", "UUID",
+    "JSON_EXTRACT", "CAST", "LOWER", "UPPER", "TRIM", "LENGTH", "ROUND",
+    "ABS", "RANDOM", "STRFTIME", "DATETIME", "DATE", "IFNULL", "NULLIF",
+    # Common language / runtime built-ins
+    "main", "init", "setup", "print", "len", "str", "int", "float", "bool",
+    "list", "dict", "set", "tuple", "map", "filter", "reduce", "fetch",
+    "require", "import", "Date", "Array", "Object", "Promise", "Error",
+    "String", "Number", "Boolean", "JSON", "RegExp", "Math", "Symbol",
+    "BigInt", "parseInt", "parseFloat", "setTimeout", "setInterval",
+    "clearTimeout", "clearInterval", "super", "next",
+}
 
-def walk(root):
+IGNORE_FILE_DIRECTIVE = "<!-- living-docs-ignore-file -->"
+IGNORE_START_DIRECTIVE = "<!-- living-docs-ignore-start -->"
+IGNORE_END_DIRECTIVE = "<!-- living-docs-ignore-end -->"
+IGNORE_NEXT_DIRECTIVE = "<!-- living-docs-ignore-next-line -->"
+IGNORE_LINE_DIRECTIVE = "<!-- living-docs-ignore -->"
+
+ROUTE_PATTERNS = [
+    # Express, Fastify, Hono, Koa, Gin, Echo, Fiber, Chi
+    re.compile(
+        r"\b(?:router|app|server|fastify|api|r|e|v1|v2|mux)\."
+        r"(?:get|post|put|patch|delete|GET|POST|PUT|PATCH|DELETE)\(\s*['\"](/[^'\"*]*)['\"]"
+    ),
+    # FastAPI, Flask, APIRouter, Blueprint
+    re.compile(
+        r"@(?:app|router|bp|api)\."
+        r"(?:get|post|put|patch|delete|route)\(\s*['\"](/[^'\"*]*)['\"]"
+    ),
+    # Go net/http &gorilla/mux HandleFunc
+    re.compile(
+        r"\b(?:http|mux)\.HandleFunc\(\s*['\"](/[^'\"*]*)['\"]"
+    ),
+]
+
+TABLE_PATTERNS = [
+    re.compile(r"CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?[`\"']?([A-Za-z_][\w]*)[`\"']?", re.I),
+    re.compile(r"__tablename__\s*=\s*['\"]([A-Za-z_][\w]*)['\"]"),
+]
+
+
+def walk(root, include_all_dirs=False):
     for dirpath, dirnames, filenames in os.walk(root):
-        dirnames[:] = [d for d in dirnames if d not in SKIP_DIRS]
+        if not include_all_dirs:
+            dirnames[:] = [d for d in dirnames if d not in SKIP_DIRS]
+        else:
+            dirnames[:] = [d for d in dirnames if d not in {".git", "node_modules", "__pycache__", ".venv", "venv"}]
         for name in filenames:
+            if name.endswith(".template.md"):
+                continue
             yield os.path.join(dirpath, name)
 
 
@@ -37,12 +103,46 @@ def find_docs(root):
     return sorted(p for p in walk(root) if DOC_NAMES.search(os.path.basename(p)))
 
 
+def load_ignore_patterns(root, cli_ignores):
+    patterns = list(cli_ignores or [])
+    ignore_path = os.path.join(root, ".living-docs-ignore")
+    if os.path.isfile(ignore_path):
+        try:
+            with open(ignore_path, encoding="utf-8", errors="ignore") as fh:
+                for raw in fh:
+                    line = raw.strip()
+                    if line and not line.startswith("#"):
+                        patterns.append(line)
+        except OSError:
+            pass
+    return patterns
+
+
+def is_ignored(token, rel_doc, ignore_patterns):
+    for pat in ignore_patterns:
+        if pat == token or pat in token:
+            return True
+        if fnmatch.fnmatch(token, pat) or fnmatch.fnmatch(rel_doc, pat):
+            return True
+        try:
+            if re.search(pat, token):
+                return True
+        except re.error:
+            pass
+    return False
+
+
 def load_sources(root, doc_set):
     chunks, rel_paths, env_keys = [], [], set()
-    for path in walk(root):
-        rel = os.path.relpath(path, root)
-        rel_paths.append(rel.replace(os.sep, "/"))
+    source_file_count = 0
+    for path in walk(root, include_all_dirs=True):
+        rel = os.path.relpath(path, root).replace(os.sep, "/")
+        rel_paths.append(rel)
         if os.path.abspath(path) in doc_set:
+            continue
+        # Skip test/example/resource directories when indexing production source code
+        top_dir = rel.split("/", 1)[0]
+        if top_dir in {"resources", "examples", "tests"}:
             continue
         base = os.path.basename(path)
         ext = os.path.splitext(path)[1].lower()
@@ -54,21 +154,53 @@ def load_sources(root, doc_set):
             with open(path, encoding="utf-8", errors="ignore") as fh:
                 content = fh.read()
                 chunks.append(content)
+                if ext in SOURCE_EXT - {".json", ".yaml", ".yml", ".toml", ".md"}:
+                    source_file_count += 1
                 if base == ".env.example":
                     for m in re.finditer(r"^([A-Z][A-Z0-9_]+)\s*=", content, re.M):
                         env_keys.add(m.group(1))
         except OSError:
             pass
-    return "\n".join(chunks), rel_paths, sorted(env_keys)
+    return "\n".join(chunks), rel_paths, sorted(env_keys), source_file_count > 0
+
+
+def iter_active_lines(text):
+    """Yield (line_no, line, in_fence) for lines not suppressed by ignore comments."""
+    in_fence = False
+    in_ignore_block = False
+    ignore_next = False
+
+    for no, line in enumerate(text.splitlines(), 1):
+        stripped = line.strip()
+        if stripped.startswith("```"):
+            in_fence = not in_fence
+            yield no, line, True
+            continue
+
+        if not in_fence:
+            if IGNORE_START_DIRECTIVE in line:
+                in_ignore_block = True
+                continue
+            if IGNORE_END_DIRECTIVE in line:
+                in_ignore_block = False
+                continue
+            if in_ignore_block:
+                continue
+            if IGNORE_NEXT_DIRECTIVE in line or stripped == IGNORE_LINE_DIRECTIVE:
+                ignore_next = True
+                continue
+            if ignore_next:
+                ignore_next = False
+                continue
+            if IGNORE_LINE_DIRECTIVE in line:
+                continue
+
+        yield no, line, in_fence
 
 
 def inline_spans(text):
-    """Yield (line_no, span) for inline code outside fenced blocks."""
-    in_fence = False
-    for no, line in enumerate(text.splitlines(), 1):
-        if line.lstrip().startswith("```"):
-            in_fence = not in_fence
-            continue
+    """Yield (line_no, span) for inline code outside fenced blocks and ignore directives."""
+    for no, line, in_fence in iter_active_lines(text):
         if in_fence:
             continue
         for m in re.finditer(r"`([^`\n]+)`", line):
@@ -76,15 +208,12 @@ def inline_spans(text):
 
 
 def markdown_links(text):
-    """Yield (line_no, target) for markdown links outside fenced blocks."""
-    in_fence = False
-    for no, line in enumerate(text.splitlines(), 1):
-        if line.lstrip().startswith("```"):
-            in_fence = not in_fence
-            continue
+    """Yield (line_no, target) for markdown links outside fenced blocks, inline code, and ignore directives."""
+    for no, line, in_fence in iter_active_lines(text):
         if in_fence:
             continue
-        for m in re.finditer(r"\[[^\]]+\]\(([^)\s]+)\)", line):
+        line_without_code = re.sub(r"`[^`\n]+`", "", line)
+        for m in re.finditer(r"\[[^\]]+\]\(([^)\s]+)\)", line_without_code):
             yield no, m.group(1).strip()
 
 
@@ -99,10 +228,29 @@ def path_exists(span, root, doc_dir, rel_paths):
     return any(("/" + p).endswith(suffix) for p in rel_paths)
 
 
+def extract_routes(source):
+    routes = set()
+    for pattern in ROUTE_PATTERNS:
+        for match in pattern.findall(source):
+            routes.add(match)
+    return sorted(routes)
+
+
+def extract_tables(source):
+    tables = set()
+    for pattern in TABLE_PATTERNS:
+        for match in pattern.findall(source):
+            tables.add(match)
+    return sorted(tables)
+
+
 def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--root", default=".")
-    ap.add_argument("--docs", nargs="*")
+    ap = argparse.ArgumentParser(description="Two-way verification for project documentation.")
+    ap.add_argument("--root", default=".", help="Project root directory (default: .)")
+    ap.add_argument("--docs", nargs="*", help="Explicit markdown files to check")
+    ap.add_argument("--ignore", action="append", default=[], help="Ignore pattern (repeatable)")
+    ap.add_argument("--skip-reverse", action="store_true", help="Skip reverse coverage checks (Code -> Docs)")
+    ap.add_argument("--allow-em-dash", action="store_true", help="Do not fail on em dashes (—)")
     args = ap.parse_args()
 
     root = os.path.abspath(args.root)
@@ -111,25 +259,37 @@ def main():
         print("No documentation files found. Create them from the living-docs templates.")
         return 1
 
-    source, rel_paths, env_keys = load_sources(root, set(docs))
+    ignore_patterns = load_ignore_patterns(root, args.ignore)
+    source, rel_paths, env_keys, has_source_files = load_sources(root, set(docs))
     errors, warnings = [], []
     all_docs_text = []
 
     for doc in docs:
-        rel_doc = os.path.relpath(doc, root)
+        rel_doc = os.path.relpath(doc, root).replace(os.sep, "/")
         doc_dir = os.path.dirname(doc)
         with open(doc, encoding="utf-8", errors="ignore") as fh:
             text = fh.read()
         all_docs_text.append(text)
 
-        for no, line in enumerate(text.splitlines(), 1):
-            if "\u2014" in line:
-                errors.append(f"{rel_doc}:{no}: em dash found, rewrite with a period, comma, colon, or parentheses")
+        if IGNORE_FILE_DIRECTIVE in text or is_ignored(rel_doc, rel_doc, ignore_patterns):
+            continue
+
+        for no, line, in_fence in iter_active_lines(text):
+            if in_fence:
+                continue
+            if not args.allow_em_dash and "\u2014" in line:
+                errors.append(
+                    f"{rel_doc}:{no}: em dash found, rewrite with a period, comma, colon, or parentheses"
+                )
             elif "\u2013" in line:
-                warnings.append(f"{rel_doc}:{no}: en dash found, prefer 'sampai' or a hyphen")
+                warnings.append(
+                    f"{rel_doc}:{no}: en dash found, prefer 'to'/'sampai' or a hyphen (-)"
+                )
 
         for no, target in markdown_links(text):
             if target.startswith(("http://", "https://", "mailto:", "file://", "#")):
+                continue
+            if is_ignored(target, rel_doc, ignore_patterns):
                 continue
             if not path_exists(target, root, doc_dir, rel_paths):
                 errors.append(f"{rel_doc}:{no}: broken markdown link `{target}`")
@@ -137,25 +297,34 @@ def main():
         for no, span in inline_spans(text):
             if " " in span or span.startswith(("http://", "https://")):
                 continue
+            if is_ignored(span, rel_doc, ignore_patterns):
+                continue
+
             func = re.fullmatch(r"(?:[A-Za-z_$][\w$]*\.)*([A-Za-z_$][\w$]*)\(\)", span)
             if func:
                 name = func.group(1)
-                if not re.search(r"\b" + re.escape(name) + r"\b", source):
+                if name in BUILTIN_FUNCS or name.upper() in BUILTIN_FUNCS:
+                    continue
+                if has_source_files and not re.search(r"\b" + re.escape(name) + r"\b", source):
                     errors.append(f"{rel_doc}:{no}: `{span}` not found in source")
                 continue
+
             if span.startswith("/"):
                 route = re.sub(r"[?<{].*$", "", span)
                 looks_like_api = route.startswith(("/api", "/ws")) or route.strip("/").count("/") >= 1
-                route = re.sub(r"^/api", "", route).rstrip("/")
-                if looks_like_api and route and route not in source:
+                route_tail = re.sub(r"^/api", "", route).rstrip("/")
+                if has_source_files and looks_like_api and route_tail and route_tail not in source:
                     warnings.append(f"{rel_doc}:{no}: API path `{span}` not found in source")
                 continue
+
             if re.fullmatch(r"#[0-9A-Fa-f]{3,8}", span):
                 continue
+
             if re.fullmatch(r"[.#][A-Za-z][\w-]*", span):
-                if span[1:] not in source:
+                if has_source_files and span[1:] not in source:
                     warnings.append(f"{rel_doc}:{no}: selector `{span}` not found in source")
                 continue
+
             ext = os.path.splitext(span.split("?")[0])[1].lower()
             if ext in PATH_EXT and re.fullmatch(r"[\w./-]+", span):
                 if not path_exists(span, root, doc_dir, rel_paths):
@@ -164,24 +333,23 @@ def main():
         if os.path.basename(doc).upper().startswith("CHANGELOG") and "## [Unreleased]" not in text:
             warnings.append(f"{rel_doc}: no '## [Unreleased]' section")
 
-    combined_docs = "\n".join(all_docs_text)
+    if not args.skip_reverse and has_source_files:
+        combined_docs = "\n".join(all_docs_text)
 
-    # Reverse check 1: Express/router endpoints in code must appear in docs
-    routes_in_code = set(re.findall(r"\b(?:router|app)\.(?:get|post|put|patch|delete)\(\s*['\"](/[^'\"*]*)['\"]", source))
-    for route in sorted(routes_in_code):
-        if route not in combined_docs:
-            warnings.append(f"coverage: route `{route}` exists in code but is not documented")
+        # Reverse check 1: HTTP endpoints in code must appear in docs
+        for route in extract_routes(source):
+            if not is_ignored(route, "", ignore_patterns) and route not in combined_docs:
+                warnings.append(f"coverage: route `{route}` exists in code but is not documented")
 
-    # Reverse check 2: SQL tables in code must appear in docs
-    tables_in_code = set(re.findall(r"CREATE\s+TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?([A-Za-z_][\w]*)", source, re.I))
-    for table in sorted(tables_in_code):
-        if table not in combined_docs:
-            warnings.append(f"coverage: SQL table `{table}` exists in code but is not documented")
+        # Reverse check 2: SQL / ORM tables in code must appear in docs
+        for table in extract_tables(source):
+            if not is_ignored(table, "", ignore_patterns) and table not in combined_docs:
+                warnings.append(f"coverage: SQL table `{table}` exists in code but is not documented")
 
-    # Reverse check 3: .env.example keys should appear in docs
-    for key in env_keys:
-        if key not in combined_docs:
-            warnings.append(f"coverage: env var `{key}` in .env.example is not documented")
+        # Reverse check 3: .env.example keys should appear in docs
+        for key in env_keys:
+            if not is_ignored(key, "", ignore_patterns) and key not in combined_docs:
+                warnings.append(f"coverage: env var `{key}` in .env.example is not documented")
 
     for w in warnings:
         print("WARN ", w)

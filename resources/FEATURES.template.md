@@ -1,31 +1,30 @@
-# Katalog Fitur: [Nama Proyek]
+# Feature Catalog: [Project Name]
 
-Daftar seluruh fitur aplikasi beserta kegunaan, aturan kerja, berkas yang mengimplementasikan, dan
-pengaturan yang memengaruhinya. Setiap fitur punya ID tetap `FEAT-NN` yang tidak pernah diubah.
+Catalog of application features, their triggers, exact rules, implementing files, and configuration keys. Every feature has a permanent `FEAT-NN` ID that is never reused or renumbered.
 
 ---
 
-## Modul 1: [Nama Modul, contoh: Pengambilan Data]
+## Module 1: [Module Name, e.g., Authentication & Rate Limiting]
 
-### FEAT-01: [Nama Fitur]
-* **Kegunaan:** [Masalah yang diselesaikan untuk pengguna atau operator, satu sampai dua kalimat.]
-* **Pemicu:** [Kapan fitur berjalan: request ke endpoint X, interval Y detik, klik tombol Z.]
-* **Aturan Kerja:**
-  1. [Langkah atau kondisi konkret, sertakan rumus, ambang, dan nilai default yang ada di kode.]
+### FEAT-01: [Feature Name]
+* **Purpose:** [Problem solved for the user or operator, in one or two sentences.]
+* **Trigger:** [When it runs: request to endpoint X, cron/interval every Y seconds, CLI command Z.]
+* **Behavior & Rules:**
+  1. [Concrete step or condition, including exact formulas, thresholds, status codes, and default values from code.]
   2. [...]
-* **Berkas Terkait:**
-  * [Lapisan, contoh Backend]: `path/ke/berkas.js` (`namaFungsi()`)
-  * [Lapisan, contoh Frontend]: `path/ke/berkas.js`
-* **Pengaturan:** `kunci_setting` (default: [nilai]), [di mana operator mengubahnya].
-* **Keterbatasan yang Diketahui:** [Hapus baris ini jika tidak ada. Tulis jujur, misalnya data disimpan tanpa enkripsi.]
+* **Touchpoints:**
+  * [Layer, e.g., Backend]: `path/to/file.ts` (`functionName()`)
+  * [Layer, e.g., Frontend / CLI]: `path/to/file.ts`
+* **Configuration:** `SETTING_KEY` (default: `[value]`), [where it is configured].
+* **Known Limitations:** [Omit this line if none. State gaps honestly, e.g., rate limiter state is in-memory and resets on process restart.]
 
 ---
 
-## Modul 2: [Nama Modul]
+## Module 2: [Module Name]
 
-### FEAT-02: [Nama Fitur]
-* **Kegunaan:**
-* **Pemicu:**
-* **Aturan Kerja:**
-* **Berkas Terkait:**
-* **Pengaturan:**
+### FEAT-02: [Feature Name]
+* **Purpose:**
+* **Trigger:**
+* **Behavior & Rules:**
+* **Touchpoints:**
+* **Configuration:**
