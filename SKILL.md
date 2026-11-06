@@ -41,14 +41,16 @@ Follow these prose rules in every document you write or edit (if the `antislop-c
 | Change in this task | README | FEATURES | CHANGELOG | ARCHITECTURE |
 | :--- | :---: | :---: | :---: | :---: |
 | New project scaffolded | create | create | create | create |
-| New user-facing feature | if run steps change | add `FEAT-NN` | `Added` | if API/data touched |
-| Behavior of a feature changed | | edit that entry | `Changed` | if API/data touched |
-| Bug fixed | | only if documented behavior was wrong | `Fixed` | |
-| New/changed endpoint, event, CLI command, payload field | | update touchpoints | `Added`/`Changed` | update contract |
-| New table, column, settings key, default value | | update config list | `Added`/`Changed` | update schema |
+| New user-facing feature, script, or CLI capability | update usage, commands & directory tree | add `FEAT-NN` | `Added` | if API/CLI/data touched |
+| Behavior of a feature or CLI flag changed | update if shown in `README.md` | edit that entry | `Changed` | if API/CLI/data touched |
+| File, script, or folder added/renamed/removed | update directory tree & links | update touchpoints | `Added`/`Changed`/`Removed` | if component layout changed |
+| Bug fixed | only if setup/usage example was wrong | only if documented behavior was wrong | `Fixed` | |
+| New/changed endpoint, event, CLI command, payload field | update if CLI/endpoint is in `README.md` | update touchpoints | `Added`/`Changed` | update contract |
+| New table, column, settings key, default value | update if listed in `README.md` | update config list | `Added`/`Changed` | update schema |
 | New env var, external service, or hardware pin/device | update setup table | update source list | `Added` | update config/wiring |
 | Non-obvious architectural trade-off chosen | | | | add `ADR-NN` |
-| Security hardening or known gap found | | update entry honestly | `Security` | |
+| Security hardening or known gap found | update if security/setup notes affected | update entry honestly | `Security` | |
+| Version bumped (`PATCH` / `MINOR` / `MAJOR`) | update version badge/refs | | promote `[Unreleased]` -> `[X.Y.Z]` | |
 | Pure refactor, typo, formatting, no behavior change | skip | skip | skip | skip |
 
 Skip silently when the last row applies. Do not create docs for throwaway scripts or one-off experiments.
@@ -71,8 +73,13 @@ Skip silently when the last row applies. Do not create docs for throwaway script
    - `FEATURES.template.md`: one `FEAT-NN` entry per feature, grouped by module.
    - `CHANGELOG.template.md`: Keep a Changelog + SemVer format.
    - `ARCHITECTURE.template.md`: system diagram, environment/hardware config, API & event contracts, data model, ADRs (`ADR-NN`), operational runbook.
-5. **Feature and ADR IDs.** Use `FEAT-NN` and `ADR-NN`, continuing from the highest existing number. Never renumber or reuse an ID. A removed feature keeps its ID with a `Removed in vX.Y.Z` (`Dihapus di versi X.Y.Z`) note; a superseded decision keeps its ID with `Superseded by ADR-MM` (`Digantikan oleh ADR-MM`).
-6. **Changelog and Semantic Version Management (`MAJOR.MINOR.PATCH`).**
+5. **Always check if `README.md` must be updated.** Never leave a user-visible change documented only inside `docs/` while `README.md` goes stale. Update `README.md` whenever any of the following happen:
+   - **Files or folders added, renamed, or deleted:** Update the **Directory Structure** tree and any relative links in `README.md`.
+   - **New feature, CLI script, flag, or workflow added/changed:** Add or update the usage section, command examples, or summary table in `README.md`.
+   - **Setup, dependencies, environment variables, or test commands changed:** Update the **Running Locally** and **Testing** sections in `README.md`.
+   - **Version bumped:** Synchronize the version badge or version references in `README.md` using `scripts/bump_version.py`.
+6. **Feature and ADR IDs.** Use `FEAT-NN` and `ADR-NN`, continuing from the highest existing number. Never renumber or reuse an ID. A removed feature keeps its ID with a `Removed in vX.Y.Z` (`Dihapus di versi X.Y.Z`) note; a superseded decision keeps its ID with `Superseded by ADR-MM` (`Digantikan oleh ADR-MM`).
+7. **Changelog and Semantic Version Management (`MAJOR.MINOR.PATCH`).**
    - Always record changes under the appropriate Keep a Changelog heading (`Added`, `Changed`, `Fixed`, `Removed`, `Security`).
    - Choose the Semantic Versioning (`X.Y.Z`) increment based on the actual code change:
      | Change Type | Changelog Category | Version Segment | Example |
@@ -87,19 +94,19 @@ Skip silently when the last row applies. Do not create docs for throwaway script
        python3 <skill-dir>/scripts/bump_version.py --root . --bump patch|minor|major|auto
        ```
        `--bump auto` inspects `## [Unreleased]` (`Removed`/`BREAKING` -> major, `Added` -> minor, `Fixed`/`Changed`/`Security` -> patch), updates `VERSION`, `package.json`, `pyproject.toml`, `Cargo.toml`, and `README.md` version badges, and promotes `## [Unreleased]` into `## [X.Y.Z] - YYYY-MM-DD`. Never backfill history you did not observe.
-7. **Record known gaps honestly.** If you notice a missing safeguard while reading code (unauthenticated endpoint, plaintext token storage, in-memory state lost on restart, missing input validation), record it under **Known Limitations** in the feature entry and under `Security` in `[Unreleased]`. Never describe a protection the code does not implement.
-8. **Verify (Two-Way Check).** Run `scripts/check_docs.py` (resolved relative to this `SKILL.md` directory, `<skill-dir>`) from the target project root and fix every error before reporting:
+8. **Record known gaps honestly.** If you notice a missing safeguard while reading code (unauthenticated endpoint, plaintext token storage, in-memory state lost on restart, missing input validation), record it under **Known Limitations** in the feature entry and under `Security` in `[Unreleased]`. Never describe a protection the code does not implement.
+9. **Verify (Two-Way Check).** Run `scripts/check_docs.py` (resolved relative to this `SKILL.md` directory, `<skill-dir>`) from the target project root and fix every error before reporting:
    ```bash
    python3 <skill-dir>/scripts/check_docs.py --root .
    ```
    - **Forward checks (`Docs -> Code`):** Fails (exit 1) on em dashes, broken markdown links, nonexistent file paths, and `func()` identifiers absent from source code. Warns (exit 0) on en dashes, unknown CSS selectors or `/api/...` paths, and missing `## [Unreleased]`.
-   - **Reverse coverage checks (`Code -> Docs`):** Warns (exit 0) when HTTP routes (Express/Fastify/Hono, FastAPI/Flask, Go `net/http`/Gin/Echo), SQL/ORM tables (`CREATE TABLE`, `__tablename__`), or `.env.example` keys exist in source code but are missing from docs.
+   - **Reverse coverage & version checks (`Code <-> Docs`):** Warns (exit 0) when HTTP routes (Express/Fastify/Hono, FastAPI/Flask, Go `net/http`/Gin/Echo), SQL/ORM tables (`CREATE TABLE`, `__tablename__`), or `.env.example` keys exist in source code but are missing from docs, or when version numbers drift across `VERSION`, `package.json`, `pyproject.toml`, `Cargo.toml`, `CHANGELOG.md`, and `README.md` badges.
    - **Handling false positives (Escape Hatches):** When a doc legitimately references an external library function, third-party endpoint, or historical path removed from source, suppress the false positive cleanly instead of deleting accurate prose:
      - Inline comment on the same line: `` `externalHook()` <!-- living-docs-ignore --> ``
      - Next-line comment: `<!-- living-docs-ignore-next-line -->`
      - Block comments: `<!-- living-docs-ignore-start -->` ... `<!-- living-docs-ignore-end -->`
      - Project-wide ignore file: add literal tokens, globs, or regexes (one per line) to `.living-docs-ignore` at the project root, or pass `--ignore <pattern>`.
-9. **Report briefly.** List which documentation files changed and the `FEAT-NN` / `ADR-NN` IDs or changelog entries added.
+10. **Report briefly.** List which documentation files changed and the `FEAT-NN` / `ADR-NN` IDs or changelog entries added.
 
 ## Entry Quality Bar
 
