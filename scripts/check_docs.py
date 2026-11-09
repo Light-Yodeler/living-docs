@@ -32,7 +32,7 @@ import sys
 SKIP_DIRS = {
     "node_modules", ".git", "dist", "build", ".next", "venv", ".venv",
     "__pycache__", "coverage", ".cache", "backups", "vendor", "target",
-    "resources", "examples", "tests", "evals",
+    "resources", "examples", "tests", "evals", "living-docs-workspace",
 }
 SOURCE_EXT = {
     ".js", ".mjs", ".cjs", ".ts", ".tsx", ".jsx", ".py", ".ino", ".c", ".cpp",
@@ -141,9 +141,9 @@ def load_sources(root, doc_set):
         rel_paths.append(rel)
         if os.path.abspath(path) in doc_set:
             continue
-        # Skip test/example/resource/eval directories when indexing production source code
+        # Skip test/example/resource/eval/workspace directories when indexing production source code
         top_dir = rel.split("/", 1)[0]
-        if top_dir in {"resources", "examples", "tests", "evals"}:
+        if top_dir in {"resources", "examples", "tests", "evals", "living-docs-workspace"}:
             continue
         base = os.path.basename(path)
         ext = os.path.splitext(path)[1].lower()
