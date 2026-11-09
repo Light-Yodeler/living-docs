@@ -24,6 +24,26 @@ See [`examples/before-and-after.md`](examples/before-and-after.md) for a side-by
 
 ---
 
+## Benchmark Results
+
+Tested across standardized evaluation tasks using the `/skill-creator` evaluation harness comparing agents **With Skill (`living-docs`)** versus **Without Skill (Baseline)**:
+
+| Metric | With Skill (`living-docs`) | Without Skill (Baseline) | Delta |
+| :--- | :---: | :---: | :---: |
+| **Pass Rate** | **100%** | **67%** | **+33.3%** |
+| **Diataxis Compliance (Eval 0)** | **100% (4 files, FEAT-01, API/ERD)** | **0% (missed FEATURES & ARCHITECTURE)** | **+100%** |
+| **Audit Speed (Eval 1)** | **153s (58 steps)** | **233s (78 steps)** | **34% faster** |
+| **Release & Patch Speed (Eval 2)** | **94s (42 steps)** | **173s (70 steps)** | **45% faster** |
+
+### Key Benchmark Takeaways
+* **Complete Diataxis Structure:** Unguided agents only write a basic `README.md` and `CHANGELOG.md`, completely omitting `FEATURES.md` and `ARCHITECTURE.md`. `living-docs` guarantees complete 4-file coverage with permanent `FEAT-NN` IDs and ERD/API contracts.
+* **Deterministic Bugfix & Patch Bumps:** Using `scripts/bump_version.py` eliminates manual search-and-replace errors, keeping manifests, README badges, and changelog headers synchronized atomically.
+* **Fast & Reliable Audits:** With `scripts/check_docs.py`, agents catch and fix out-of-sync identifiers, broken links, and missing reverse coverage in one deterministic pass.
+
+Evaluation prompts and assertions are documented in [`evals/evals.json`](evals/evals.json).
+
+---
+
 ## Pragmatic Diataxis Layout
 
 Strict [Diataxis](https://diataxis.fr/) splits documentation into four separate directory trees (Tutorials, How-To Guides, Reference, Explanation). In small-to-medium repositories, strict separation often leads to fragmented stub files that nobody maintains.
