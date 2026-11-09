@@ -67,6 +67,8 @@ living-docs/
 ├── docs/
 │   ├── FEATURES.md                   # Feature catalog (FEAT-01 .. FEAT-06) for living-docs
 │   └── ARCHITECTURE.md               # Architecture, CLI contracts, ADRs (ADR-01 .. ADR-03), runbook
+├── evals/
+│   └── evals.json                    # Skill-creator evaluation prompts & expectations
 ├── examples/
 │   └── before-and-after.md           # Side-by-side comparison of unchecked vs verified docs
 ├── resources/

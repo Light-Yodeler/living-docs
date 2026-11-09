@@ -1,0 +1,43 @@
+{
+  "skill_name": "living-docs",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Saya baru saja menambahkan endpoint POST /api/webhooks dan tabel SQL webhook_deliveries di proyek ini, serta variabel WEBHOOK_TIMEOUT_MS=4000 di .env.example. Tolong buatkan atau perbarui dokumentasi proyeknya agar lengkap.",
+      "expected_output": "Complete Indonesian 4-file documentation (README.md, docs/FEATURES.md, docs/ARCHITECTURE.md, docs/CHANGELOG.md) covering FEAT-01, POST /api/webhooks, webhook_deliveries, and WEBHOOK_TIMEOUT_MS, passing check_docs.py with 0 errors and 0 warnings.",
+      "files": [],
+      "expectations": [
+        "Documentation is written consistently in Indonesian using the resources/id/ template structure without untranslated English status markers",
+        "docs/FEATURES.md defines a permanent FEAT-NN ID referencing POST /api/webhooks, webhook_deliveries, and WEBHOOK_TIMEOUT_MS=4000",
+        "docs/ARCHITECTURE.md documents the POST /api/webhooks contract, webhook_deliveries schema, and WEBHOOK_TIMEOUT_MS environment variable",
+        "README.md includes an accurate directory structure tree and links to docs/FEATURES.md, docs/ARCHITECTURE.md, and docs/CHANGELOG.md",
+        "scripts/check_docs.py passes with 0 errors and 0 warnings (no em dashes, no broken links, no hallucinated function names)"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Our README.md and docs/FEATURES.md haven't been updated in months and I think some function names and routes in the docs don't even exist anymore. Can you audit our docs against the codebase and fix everything that's out of sync?",
+      "expected_output": "Audited and corrected documentation where all hallucinated function names and broken paths are replaced with real source identifiers, all undocumented routes/tables/env keys are added, and check_docs.py exits 0 with 0 warnings.",
+      "files": [],
+      "expectations": [
+        "Runs scripts/check_docs.py to identify forward errors (missing functions/paths) and reverse coverage warnings (undocumented routes/tables/env vars)",
+        "Removes or replaces hallucinated function names and nonexistent file paths with real identifiers from source code",
+        "Documents previously undocumented routes, SQL tables, and .env.example variables found in the codebase",
+        "Rewrites any AI prose tells (such as em dashes or vague buzzwords) into concrete technical statements",
+        "Final verification with scripts/check_docs.py exits with code 0 and 0 warnings"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Bug timeout pada worker retry sudah saya perbaiki. Tolong catat perbaikannya di changelog, sinkronkan README jika perlu, dan naikkan patch version proyek ini.",
+      "expected_output": "Updated CHANGELOG.md, VERSION / package manifest, and README.md badge incremented by one patch version (e.g. 0.1.0 -> 0.1.1) via scripts/bump_version.py, verified by check_docs.py.",
+      "files": [],
+      "expectations": [
+        "Records the bug fix under ### Fixed in CHANGELOG.md with a concrete description of the symptom and fix",
+        "Runs scripts/bump_version.py with --bump patch (or --bump auto) to increment the patch version across VERSION, manifests, README.md badge, and CHANGELOG.md",
+        "Promotes ## [Unreleased] entries into a dated ## [X.Y.Z] - YYYY-MM-DD release section while preserving a clean ## [Unreleased] heading",
+        "Verifies version consistency and documentation integrity using scripts/check_docs.py with 0 errors and 0 warnings"
+      ]
+    }
+  ]
+}

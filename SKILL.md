@@ -1,12 +1,15 @@
 ---
 name: living-docs
 description: >-
-  Creates and maintains project documentation (README, FEATURES catalog, CHANGELOG,
-  architecture/API/data-model reference, ADRs, and operational runbooks) so other
-  developers can see every feature, why it was built that way, and how to operate it.
-  Use when starting a new project, after adding or changing a feature, endpoint, database
-  table/column, settings key, CLI flag, hardware pin, payload field, or config option, and
-  when the user asks to document or audit docs.
+  Creates, verifies, and maintains project documentation (README, FEATURES catalog,
+  CHANGELOG, architecture/API/data-model reference, ADRs, and operational runbooks) and
+  manages Semantic Versioning (patch/minor/major bumps). Make sure to use this skill
+  whenever starting a new project, after adding or changing a feature, endpoint, CLI
+  command, database table/column, settings key, hardware pin, or config option, when
+  bumping versions or cutting a release, or whenever the user asks to document, update
+  README/changelog, or audit docs against the codebase.
+license: MIT
+compatibility: Python 3.8+ standard library (for scripts/check_docs.py and scripts/bump_version.py)
 ---
 
 # Living Docs
